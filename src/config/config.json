@@ -1,0 +1,21 @@
+{
+  "server_url": {
+    "dev": "http://api_service:8000"
+  },
+  "router_id": {
+    "dev": 1
+  },
+  "serial_config": {
+    "dev": {
+      "port": "/dev/ttyS0",
+      "baud_rate": 9600,
+      "parity": "NONE",
+      "stopbits": "ONE",
+      "bytesize": "EIGHT",
+      "timeout": 1
+    }
+  },
+  "debug": {
+    "dev": true
+  }
+}
