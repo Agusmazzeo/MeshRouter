@@ -73,7 +73,7 @@ class RouterService:
   
     def create_device_thread(self, device: DeviceModel):
         self.logger.debug(f"Creating thread for device: {device.device_id}")
-        device_control = DeviceControl(device, self.message_queue)
+        device_control = DeviceControl(device, self.message_queue, self.http_service)
         self.device_map[device.device_id] = device
         self.device_control_map[device.device_id] = device_control
         device_control.start()
@@ -102,8 +102,6 @@ class RouterService:
                     self.create_device_thread(device)
                 elif not self.device_map[device.device_id] == device:
                     self.logger.debug(f"Updating device: {device.device_id}")
-                    self.logger.debug(f"====== {self.device_map[device.device_id]}")
-                    self.logger.debug(f"====== {device}")
                     self.device_control_map[device.device_id].stop_thread = True
                     self.create_device_thread(device)
                 else:

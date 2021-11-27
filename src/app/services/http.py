@@ -1,7 +1,9 @@
+from typing import Dict
 import requests
 from http import HTTPStatus
 
 from app.utils.schemas.router_schemas import RouterSchema
+from app.utils.schemas.device_schemas import UpdateDevicePinSchema
 
 class HTTPService:
 
@@ -22,3 +24,12 @@ class HTTPService:
         if response.status_code != HTTPStatus.OK:
             raise Exception(response)
         return RouterSchema().load(data=response.json())
+
+    def update_device_pin_values(self, device: Dict) -> UpdateDevicePinSchema:
+        response = requests.patch(
+            f"{self.server}/api/devices/{device['device_id']}",
+            json=UpdateDevicePinSchema().dump(device)
+        )
+        if response.status_code != HTTPStatus.OK:
+            raise Exception(response)
+        return UpdateDevicePinSchema().load(data=response.json())

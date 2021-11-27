@@ -2,19 +2,20 @@ import time
 from datetime import datetime
 from queue import Queue
 from threading import Thread
-from typing import Dict
 
 from app.utils.models.device import DeviceModel, PinType, DevicePinModel
 from app.utils.models.message import Command
+from app.services.http import HTTPService
 from app.utils.logger import configure_logger
 
 
 class DeviceControl:
 
-    def __init__(self, device: DeviceModel, message_queue: Queue):
+    def __init__(self, device: DeviceModel, message_queue: Queue, http_service: HTTPService):
         self._device = device
         self._message_queue= message_queue
         self.logger = configure_logger(f"Device {device.device_id}")
+        self.http_service = http_service
         self._stop_thread = False
 
     @property
@@ -50,6 +51,7 @@ class DeviceControl:
             time.sleep(5) 
 
     def update_device_output(self):
+        updated_pins = []
         for pin in self.device.pins:
             if pin.type_id == PinType.OUTPUT.value:
                 if pin.cron_id:
@@ -58,12 +60,25 @@ class DeviceControl:
                         continue
                     else:
                         pin.value = new_value
+                        updated_pins.append(
+                            {
+                                "pin_id": pin.pin_id,
+                                "value": pin.value
+                            }
+                        )
                 command = Command(**{
                     "mac_id": self.device.mac_id,
                     "at_command": pin.io_line,
                     "value": pin.xbee_value
                 })
                 self.send_command(command)
+        if len(updated_pins) > 0:
+            self.http_service.update_device_pin_values(
+                {
+                    "device_id": self.device.device_id,
+                    "pins": updated_pins
+                }
+            )
 
     def send_command(self, command: Command):
         self.message_queue.put(command)

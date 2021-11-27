@@ -41,3 +41,14 @@ class DeviceSchema(Schema):
 
 class DeviceListSchema(Schema):
     devices = fields.List(fields.Nested(DeviceSchema))
+
+
+class DevicePinValueSchema(Schema):
+    pin_id = fields.Int(data_key="pinID")
+    value = fields.Int()
+
+
+class UpdateDevicePinSchema(Schema):
+    device_id = fields.Int(data_key="deviceID")
+    pins = fields.List(fields.Nested(DevicePinValueSchema))
+
