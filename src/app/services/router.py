@@ -1,11 +1,11 @@
 import logging
 from threading import Thread
 import time
-from typing import Dict
 from queue import Queue
 
 from digi.xbee.devices import DigiMeshDevice, RemoteXBeeDevice
 from digi.xbee.models.address import XBee64BitAddress
+from dictdiffer import diff
 
 from app.manager.device_manager import DeviceControl
 from app.utils.models.device import DeviceModel
@@ -73,7 +73,7 @@ class RouterService:
   
     def create_device_thread(self, device: DeviceModel):
         self.logger.debug(f"Creating thread for device: {device.device_id}")
-        device_control = DeviceControl(device, self.message_queue, self.http_service)
+        device_control = DeviceControl(device, self.message_queue, self.http_service, self.logger)
         self.device_map[device.device_id] = device
         self.device_control_map[device.device_id] = device_control
         device_control.start()
@@ -81,7 +81,7 @@ class RouterService:
     def cleanup_devices(self):
         devices = list(self.device_map.values())
         for device in devices:
-            if not device.updated:
+            if not device.alive:
                 del self.device_map[device.device_id]
                 self.device_control_map[device.device_id].stop_thread = True
                 del self.device_control_map[device.device_id]
@@ -93,19 +93,20 @@ class RouterService:
     def start_router_updater(self):
         self.logger.info("Starting router updater!")
         while True:
-            time.sleep(10)
+            time.sleep(20)
             updated_router = self.http_service.get_router_info()
             for device in updated_router["devices"]:
                 device = DeviceModel(**device)
-                if device.device_id not in self.device_control_map.keys():
-                    self.logger.debug("Device does not exist in device_control_map")
-                    self.create_device_thread(device)
-                elif not self.device_map[device.device_id] == device:
-                    self.logger.debug(f"Updating device: {device.device_id}")
-                    self.device_control_map[device.device_id].stop_thread = True
-                    self.create_device_thread(device)
-                else:
-                    self.logger.debug("Nothing happened")
-                    self.device_map[device.device_id].updated = True
+                if device.pins:
+                    if device.device_id not in self.device_control_map.keys():
+                        self.logger.debug("Device does not exist in device_control_map")
+                        self.create_device_thread(device)    
+                    elif not self.device_map[device.device_id] == device:
+                        self.logger.debug(f"Updating device: {device.device_id}")
+                        self.device_control_map[device.device_id].stop_thread = True
+                        self.create_device_thread(device)
+                    else:
+                        self.logger.debug("Nothing happened")
+                self.device_map[device.device_id].alive = True
             self.cleanup_devices()
                     

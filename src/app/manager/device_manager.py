@@ -1,7 +1,8 @@
+from logging import Logger
 import time
 from datetime import datetime
 from queue import Queue
-from threading import Thread
+from threading import Thread, get_ident
 
 from app.utils.models.device import DeviceModel, PinType, DevicePinModel
 from app.utils.models.message import Command
@@ -11,10 +12,16 @@ from app.utils.logger import configure_logger
 
 class DeviceControl:
 
-    def __init__(self, device: DeviceModel, message_queue: Queue, http_service: HTTPService):
+    def __init__(
+        self,
+        device: DeviceModel,
+        message_queue: Queue,
+        http_service: HTTPService,
+        logger: Logger
+    ):
         self._device = device
         self._message_queue= message_queue
-        self.logger = configure_logger(f"Device {device.device_id}")
+        self.logger = logger
         self.http_service = http_service
         self._stop_thread = False
 
@@ -44,39 +51,44 @@ class DeviceControl:
         return device_thread
 
     def check_device_status(self):
+        self.logger.info("Started thread!")
         while True:
             if self.stop_thread:
                 break
-            self.update_device_output()
+            if len(self.device.pins_updated)<len(self.device.pins):
+                self.update_device_output()
+            self.device.alive = False
             time.sleep(5) 
 
     def update_device_output(self):
-        updated_pins = []
+        cron_updated_pins = []
         for pin in self.device.pins:
-            if pin.type_id == PinType.OUTPUT.value:
-                if pin.cron_id:
+            if pin.type_id == PinType.OUTPUT.value and not (pin.pin_id in self.device.pins_updated):
+                if pin.cron_id is not None:
                     new_value = self.get_cron_output_value(pin)
                     if new_value == pin.value:
                         continue
                     else:
                         pin.value = new_value
-                        updated_pins.append(
+                        cron_updated_pins.append(
                             {
                                 "pin_id": pin.pin_id,
                                 "value": pin.value
                             }
                         )
+                else:
+                    self.device.pins_updated.append(pin.pin_id)
                 command = Command(**{
                     "mac_id": self.device.mac_id,
                     "at_command": pin.io_line,
                     "value": pin.xbee_value
                 })
                 self.send_command(command)
-        if len(updated_pins) > 0:
+        if len(cron_updated_pins) > 0:
             self.http_service.update_device_pin_values(
                 {
                     "device_id": self.device.device_id,
-                    "pins": updated_pins
+                    "pins": cron_updated_pins
                 }
             )
 

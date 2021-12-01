@@ -24,9 +24,9 @@ class DevicePinSchema(Schema):
     type_id = fields.Str(data_key="typeID")
     value = fields.Int()
     device_pin_id = fields.Str(data_key="devicePinID")
-    cron_id = fields.Int(data_key="cronID")
+    cron_id = fields.Int(data_key="cronID", allow_none=True)
     type = fields.Nested(PinTypeSchema)
-    cron = fields.Nested(CronPeriodsSchema)
+    cron = fields.Nested(CronPeriodsSchema, allow_none=True)
 
 
 class DeviceSchema(Schema):

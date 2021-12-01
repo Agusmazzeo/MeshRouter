@@ -39,7 +39,7 @@ class DevicePinModel(BaseModel):
     value: Optional[int] = 0
     cron_id: Optional[int] = None
     type: PinTypeModel
-    cron: CronPeriodModel
+    cron: Optional[CronPeriodModel] = None
 
     @property
     def xbee_value(self):
@@ -64,9 +64,9 @@ class DeviceModel(BaseModel):
     router_id: int
     pins: List[DevicePinModel]
     type: DeviceTypeModel
-    updated: Optional[bool] = True
+    alive: Optional[bool] = True
+    pins_updated: Optional[List[int]] = []
 
     def __eq__(self, other):
-        return len(list(diff(self.dict(), other.dict()))) == 0
-
+        return len(list(diff(self.dict(), other.dict(), ignore=["alive", "pins_updated"]))) == 0
 
