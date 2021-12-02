@@ -1,9 +1,11 @@
 {
   "server_url": {
-    "dev": "http://api_service:8000"
+    "dev": "http://api_service:8000",
+    "prod": "https://159.89.178.19:8000"
   },
   "router_id": {
-    "dev": 1
+    "dev": 1,
+    "prod": 1
   },
   "serial_config": {
     "dev": {
@@ -13,9 +15,18 @@
       "stopbits": "ONE",
       "bytesize": "EIGHT",
       "timeout": 1
+    },
+    "prod": {
+      "port": "/dev/ttyS0",
+      "baud_rate": 9600,
+      "parity": "NONE",
+      "stopbits": "ONE",
+      "bytesize": "EIGHT",
+      "timeout": 1
     }
   },
   "debug": {
-    "dev": true
+    "dev": true,
+    "prod": true
   }
 }
