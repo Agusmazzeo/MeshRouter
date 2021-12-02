@@ -25,7 +25,7 @@ class RouterService:
         self.logger = logger
         
         # self.set_up_serial()
-        # self.set_up_xbee_gateway()
+        self.set_up_xbee_gateway()
         self.set_up_message_queue()
 
         self.start_uart_sender()
@@ -67,8 +67,8 @@ class RouterService:
         while True:
             command = self.message_queue.get()
             self.logger.info(f"Command: {command}")
-            # remote = RemoteXBeeDevice(self.xbee, XBee64BitAddress.from_hex_string(command.mac_id))
-            # remote.set_io_configuration(command.at_command, command.value)
+            remote = RemoteXBeeDevice(self.xbee, XBee64BitAddress.from_hex_string(command.mac_id))
+            remote.set_io_configuration(command.at_command, command.value)
             self.message_queue.task_done()
   
     def create_device_thread(self, device: DeviceModel):
