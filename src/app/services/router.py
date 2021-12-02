@@ -25,7 +25,7 @@ class RouterService:
         self.logger = logger
         
         # self.set_up_serial()
-        self.set_up_xbee_gateway()
+        # self.set_up_xbee_gateway()
         self.set_up_message_queue()
 
         self.start_uart_sender()
