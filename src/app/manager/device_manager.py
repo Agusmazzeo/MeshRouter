@@ -86,8 +86,8 @@ class DeviceControl:
                 self.send_command(command)
         if len(cron_updated_pins) > 0:
             self.http_service.update_device_pin_values(
-                {
-                    "device_id": self.device.device_id,
+                device_id=self.device.device_id,
+                updated_device={
                     "pins": cron_updated_pins
                 }
             )
