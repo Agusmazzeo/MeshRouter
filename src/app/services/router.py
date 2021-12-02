@@ -36,9 +36,9 @@ class RouterService:
     def serial_uart(self):
         return self._serial_uart
 
-    @property
-    def xbee(self):
-        return self._xbee
+    # @property
+    # def xbee(self):
+    #     return self._xbee
 
     @property
     def message_queue(self):
@@ -56,9 +56,9 @@ class RouterService:
     #     # )
     #     self._serial_uart = None
 
-    def set_up_xbee_gateway(self):
-        self._xbee = DigiMeshDevice("/dev/ttyS0", 9600)
-        self._xbee.open()
+    # def set_up_xbee_gateway(self):
+    #     self._xbee = DigiMeshDevice("/dev/ttyS0", 9600)
+    #     self._xbee.open()
 
     def set_up_message_queue(self):
         self._message_queue = Queue()
